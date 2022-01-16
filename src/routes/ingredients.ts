@@ -48,9 +48,8 @@ const readIngredient = async (
       "SELECT * FROM ingredients WHERE ingredient_id = $1",
       [ingredient_id]
     );
+    if (rows.length == 0) throw new Error("No matching ingredient found");
     ingredient = rows[0];
-  } catch (err) {
-    console.error(err);
   } finally {
     client.release();
   }
@@ -65,11 +64,11 @@ const updateIngredient = async (
   const client = await fastify.pg.connect();
   let ingredient: IngredientType;
   try {
-    const result = await client.query(
+    const { rows } = await client.query(
       "UPDATE ingredients SET ingredient_name = $1 WHERE ingredient_id = $2 RETURNING *",
       [updatePayload.ingredient_name, ingredient_id]
     );
-    const { rows } = result;
+    if (rows.length == 0) throw new Error("No matching ingredient found");
     ingredient = rows[0];
   } finally {
     client.release();
@@ -83,11 +82,11 @@ const deleteIngredient = async (
 ): Promise<void> => {
   const client = await fastify.pg.connect();
   try {
-    const result = await client.query(
-      "DELETE FROM ingredients WHERE ingredient_id = $1",
+    const {rows} = await client.query(
+      "DELETE FROM ingredients WHERE ingredient_id = $1 RETURNING *",
       [ingredient_id]
     );
-    console.log(result);
+    if (rows.length == 0) throw new Error("No matching ingredient found");
   } finally {
     client.release();
   }
@@ -164,7 +163,7 @@ const ingredients: FastifyPluginAsync = async (
       try {
         return await updateIngredient(fastify, request.params.id, request.body);
       } catch (err) {
-        return reply.status(400).send({ error: true });
+        return reply.status(404).send({ error: true });
       }
     },
   });

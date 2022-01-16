@@ -1,10 +1,10 @@
-import { setupTestEnvironment, sleep } from "../helper";
+import { setupTestEnvironment } from "../helper";
 import { IngredientType } from "../interfaces";
 
 const app = setupTestEnvironment();
 
 /** insert a potato into the db */
-const addDummyPotato = async (): Promise<Number> => {
+const addDummyPotato = async (): Promise<number> => {
   const client = await app.pg.connect();
   const { rows } = await client.query(
     "INSERT INTO ingredients (ingredient_name) VALUES ('Potato') RETURNING ingredient_id"
@@ -14,9 +14,13 @@ const addDummyPotato = async (): Promise<Number> => {
   return id;
 };
 
-test("should return a list of ingredients", async () => {
-  const id = await addDummyPotato();
+let id: IngredientType["ingredient_id"];
+beforeEach(async () => {
+  // have a potato in db for use during tests
+  id = await addDummyPotato();
+});
 
+test("should return a list of ingredients", async () => {
   // check if the potato is returned
   const res = await app.inject({ url: "/ingredients" });
   expect(res.statusCode).toEqual(200);
@@ -39,9 +43,21 @@ test("should create an ingredient", async () => {
   expect(res.statusCode).toEqual(201);
 });
 
-test("should read an ingredient", async () => {
-  const id = await addDummyPotato();
+test("should not create invalid ingredient", async () => {
+  const ingredientPayload = {
+    name: "Potato",
+  };
 
+  const res = await app.inject({
+    url: "/ingredients",
+    method: "POST",
+    payload: ingredientPayload,
+  });
+  expect(res.statusCode).toEqual(400);
+
+})
+
+test("should read an ingredient", async () => {
   const res = await app.inject({
     url: `/ingredients/${id}`,
     method: "GET",
@@ -50,9 +66,15 @@ test("should read an ingredient", async () => {
   expect(res.json()).toEqual({ ingredient_name: "Potato", ingredient_id: id });
 });
 
-test("should update an ingredient", async () => {
-  const id = await addDummyPotato();
+test("should fail to read a missing ingredient", async () => {
+  const res = await app.inject({
+    url: `/ingredients/2`,
+    method: "GET",
+  });
+  expect(res.statusCode).toEqual(404);
+});
 
+test("should update an ingredient", async () => {
   const ingredientPayload: IngredientType = {
     ingredient_name: "Taters",
   };
@@ -66,9 +88,20 @@ test("should update an ingredient", async () => {
   expect(res.json()).toEqual({ ingredient_name: "Taters", ingredient_id: id });
 });
 
-test("should delete an ingredient", async () => {
-  const id = await addDummyPotato();
+test("should fail to update a missing ingredient", async () => {
+  const ingredientPayload: IngredientType = {
+    ingredient_name: "Taters",
+  };
 
+  const res = await app.inject({
+    url: `/ingredients/2`,
+    method: "PATCH",
+    payload: ingredientPayload,
+  });
+  expect(res.statusCode).toEqual(404);
+});
+
+test("should delete an ingredient", async () => {
   const res = await app.inject({
     url: `/ingredients/${id}`,
     method: "DELETE",
@@ -76,4 +109,10 @@ test("should delete an ingredient", async () => {
   expect(res.statusCode).toEqual(204);
 });
 
-test.todo("should delete ingredient");
+test("should fail to delete a missing ingredient", async () => {
+  const res = await app.inject({
+    url: `/ingredients/2`,
+    method: "DELETE",
+  });
+  expect(res.statusCode).toEqual(404);
+});
