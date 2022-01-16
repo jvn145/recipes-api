@@ -1,0 +1,40 @@
+{
+  "name": "recipes-api",
+  "version": "1.0.0",
+  "description": "api backend for recipes app",
+  "main": "src/server.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/src/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@sinclair/typebox": "^0.23.2",
+    "fastify": "^3.25.3",
+    "fastify-cors": "^6.0.2",
+    "fastify-plugin": "^3.0.0",
+    "fastify-postgres": "^3.6.0",
+    "pg": "^8.7.1"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.16.8",
+    "@babel/preset-typescript": "^7.16.7",
+    "@types/jest": "^27.4.0",
+    "@types/node": "^17.0.8",
+    "concurrently": "^7.0.0",
+    "fastify-cli": "^2.14.0",
+    "fastify-tsconfig": "^1.0.1",
+    "jest": "^27.4.7",
+    "prettier": "^2.5.1",
+    "ts-jest": "^27.1.3",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.4"
+  },
+  "jest": {
+    "testPathIgnorePatterns": [
+      "dist"
+    ]
+  }
+}
