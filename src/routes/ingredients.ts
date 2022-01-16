@@ -7,6 +7,10 @@ import {
   IngredientListType,
 } from "../interfaces";
 
+interface IngredientIdParams {
+  id: IngredientType["ingredient_id"];
+}
+
 const indexIngredients = async (
   fastify: FastifyInstance
 ): Promise<IngredientListType> => {
@@ -82,7 +86,7 @@ const deleteIngredient = async (
 ): Promise<void> => {
   const client = await fastify.pg.connect();
   try {
-    const {rows} = await client.query(
+    const { rows } = await client.query(
       "DELETE FROM ingredients WHERE ingredient_id = $1 RETURNING *",
       [ingredient_id]
     );
@@ -93,8 +97,7 @@ const deleteIngredient = async (
 };
 
 const ingredients: FastifyPluginAsync = async (
-  fastify,
-  opts
+  fastify
 ): Promise<void> => {
   // INDEX
   fastify.route({
@@ -111,7 +114,7 @@ const ingredients: FastifyPluginAsync = async (
   });
 
   // CREATE
-  fastify.route({
+  fastify.route<{ Body: IngredientType }>({
     method: "POST",
     url: "/",
     schema: {
@@ -132,7 +135,7 @@ const ingredients: FastifyPluginAsync = async (
   });
 
   // READ
-  fastify.route({
+  fastify.route<{ Params: IngredientIdParams }>({
     method: "GET",
     url: "/:id",
     schema: {
@@ -150,7 +153,7 @@ const ingredients: FastifyPluginAsync = async (
   });
 
   // UPDATE
-  fastify.route({
+  fastify.route<{ Params: IngredientIdParams; Body: IngredientType }>({
     method: "PATCH",
     url: "/:id",
     schema: {
@@ -169,7 +172,7 @@ const ingredients: FastifyPluginAsync = async (
   });
 
   // DELETE
-  fastify.route({
+  fastify.route<{ Params: IngredientIdParams }>({
     method: "DELETE",
     url: "/:id",
     handler: async (request, reply) => {
