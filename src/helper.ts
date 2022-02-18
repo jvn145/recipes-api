@@ -1,5 +1,4 @@
 import { build } from "./app";
-import { FastifyInstance } from "fastify";
 
 export function setupTestEnvironment() {
   const connectionString =
@@ -34,7 +33,7 @@ export function setupTestEnvironment() {
 
   afterAll(async () => {
     await resetDB();
-    app.close();
+    await app.close();
   });
   return app;
 }

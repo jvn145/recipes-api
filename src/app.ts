@@ -1,10 +1,12 @@
 import Fastify, { FastifyServerOptions } from "fastify";
 
 import fastifyCors from "fastify-cors";
+import fastifyPostgres from "fastify-postgres";
+
+import db from "./db";
 
 import ingredients from "./routes/ingredients";
-import fastifyPostgres from "fastify-postgres";
-import db from "./db";
+import recipes from "./routes/recipes";
 
 export interface DatabaseOptions {
   connectionString: String;
@@ -23,5 +25,6 @@ export const build = (
     pg: db,
   });
   app.register(ingredients, { prefix: "/ingredients" });
+  app.register(recipes, { prefix: "/recipes" });
   return app;
 };
